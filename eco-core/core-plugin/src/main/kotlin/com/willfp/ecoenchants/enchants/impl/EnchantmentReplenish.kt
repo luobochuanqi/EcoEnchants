@@ -3,11 +3,15 @@ package com.willfp.ecoenchants.enchants.impl
 import com.willfp.ecoenchants.EcoEnchantsPlugin
 import com.willfp.ecoenchants.enchants.EcoEnchant
 import com.willfp.ecoenchants.target.EnchantLookup.hasEnchantActive
+import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.block.BlockFace
 import org.bukkit.block.data.Ageable
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 
 class EnchantmentReplenish(
@@ -58,9 +62,13 @@ class EnchantmentReplenish(
 
             if (enchant.config.getBool("consume-seeds")) {
                 val item = ItemStack(
-                    if (type == Material.WHEAT) {
-                        Material.WHEAT_SEEDS
-                    } else type
+                    when (type) {
+                        Material.WHEAT -> Material.WHEAT_SEEDS
+                        Material.POTATOES -> Material.POTATO
+                        Material.CARROTS -> Material.CARROT
+                        Material.BEETROOTS -> Material.BEETROOT_SEEDS
+                        else -> type
+                    }
                 )
 
                 val hasSeeds = player.inventory.removeItem(item).isEmpty()
@@ -80,6 +88,19 @@ class EnchantmentReplenish(
             plugin.scheduler.run {
                 block.type = type
                 block.blockData = data
+
+                // Improves compatibility with other plugins.
+                Bukkit.getPluginManager().callEvent(
+                    BlockPlaceEvent(
+                        block,
+                        block.state,
+                        block.getRelative(BlockFace.DOWN),
+                        player.inventory.itemInMainHand,
+                        player,
+                        true,
+                        EquipmentSlot.HAND
+                    )
+                )
             }
         }
     }

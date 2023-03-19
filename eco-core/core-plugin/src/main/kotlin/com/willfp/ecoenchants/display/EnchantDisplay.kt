@@ -12,6 +12,7 @@ import com.willfp.ecoenchants.display.EnchantSorter.sortForDisplay
 import com.willfp.ecoenchants.enchants.EcoEnchant
 import com.willfp.ecoenchants.enchants.wrap
 import com.willfp.ecoenchants.target.EnchantmentTargets.isEnchantable
+import com.willfp.libreforge.conditions.isMet
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemFlag
@@ -75,9 +76,12 @@ class EnchantDisplay(private val plugin: EcoEnchantsPlugin) : DisplayModule(plug
         for ((enchant, level) in enchants) {
             var showNotMet = false
             if (player != null && enchant is EcoEnchant) {
-                val enchantNotMetLines = enchant.getLevel(level).getNotMetLines(player).map { Display.PREFIX + it }
+                val enchantLevel = enchant.getLevel(level)
+
+                val enchantNotMetLines = enchantLevel.getNotMetLines(player).map { Display.PREFIX + it }
                 notMetLines.addAll(enchantNotMetLines)
-                if (enchantNotMetLines.isNotEmpty()) {
+
+                if (enchantNotMetLines.isNotEmpty() || enchantLevel.showAnyNotMet(player)) {
                     showNotMet = true
                 }
             }
